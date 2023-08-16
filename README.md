@@ -74,7 +74,7 @@ services:
 
     environment:
       # CrowdSec CAPTCHA options
-      CAPTCHA_PROVDER: "recaptcha"
+      CAPTCHA_PROVIDER: "recaptcha"
       SECRET_KEY: "===SECRET_KEY==="
       SITE_KEY: "===SITE_KEY==="
       CAPTCHA_EXPIRATION: "1800"
