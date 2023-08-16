@@ -60,16 +60,13 @@ jobs:
         with:
           images: deathcamel57/nginx-proxy-manager
 
-      - name: DEBUG
-        run: echo ${{ github.ref }}
-
       # If we're on master branch, build latest
-      - if: github.ref == 'master'
+      - if: github.ref == 'refs/heads/master'
         name: Build the Docker image
         run: docker build . --file ./docker/Dockerfile --tag deathcamel57/nginx-proxy-manager:latest
 
       # If we're on develop branch, build dev
-      - if: github.ref == 'master'
+      - if: github.ref == 'refs/heads/master'
         name: Build the Docker image
         run: docker build . --file ./docker/Dockerfile --tag deathcamel57/nginx-proxy-manager:dev
 
