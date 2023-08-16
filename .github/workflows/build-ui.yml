@@ -1,5 +1,8 @@
 name: Build UI
-on: [push]
+
+on:
+  push:
+    branches: [ "master", "develop" ]
 
 jobs:
   build:

@@ -2,10 +2,7 @@ name: Docker Image CI
 
 on:
   push:
-    branches: [ "master" ]
-  workflows: [Build UI]
-  types:
-    - completed
+    branches: [ "master", "develop" ]
 
 jobs:
   build:
@@ -38,8 +35,15 @@ jobs:
         with:
           images: deathcamel57/nginx-proxy-manager
 
-      - name: Build the Docker image
-        run: docker build . --file ./docker/Dockerfile --tag deathcamel57/nginx-proxy-manager:$(date +%s)
+      # If we're on master branch, build latest
+      - if: github.ref == 'master'
+        name: Build the Docker image
+        run: docker build . --file ./docker/Dockerfile --tag deathcamel57/nginx-proxy-manager:latest
+
+      # If we're on develop branch, build dev
+      - if: github.ref == 'master'
+        name: Build the Docker image
+        run: docker build . --file ./docker/Dockerfile --tag deathcamel57/nginx-proxy-manager:dev
 
       - name: Push to Docker Hub
         run: docker push deathcamel57/nginx-proxy-manager
