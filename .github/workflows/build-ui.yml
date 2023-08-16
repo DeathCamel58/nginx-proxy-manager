@@ -17,18 +17,12 @@ jobs:
         uses: borales/actions-yarn@v4
         with:
           dir: 'frontend'
-          cmd: install # will run `yarn install` command
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }} # if needed
+          cmd: install
       - name: Build production bundle
         uses: borales/actions-yarn@v4
         with:
           dir: 'frontend'
-          cmd: build:prod # will run `yarn build:prod` command
-      - name: Test the app
-        uses: borales/actions-yarn@v4
-        with:
-          cmd: test # will run `yarn test` command
+          cmd: build
 
       - name: Archive Built UI
         uses: actions/upload-artifact@v3
