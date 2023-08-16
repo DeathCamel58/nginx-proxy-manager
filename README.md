@@ -73,6 +73,11 @@ services:
       # - '21:21' # FTP
 
     environment:
+      # CrowdSec CAPTCHA options
+      CAPTCHA_PROVDER: "recaptcha"
+      SECRET_KEY: "===SECRET_KEY==="
+      SITE_KEY: "===SITE_KEY==="
+      CAPTCHA_EXPIRATION: "1800"
 
       # OpenResty Config
       LAPI_URL: "crowdsec:8080"
@@ -146,6 +151,23 @@ Password: changeme
 ```
 
 Immediately after logging in with this default user you will be asked to modify your details and change your password.
+
+## Additional configuration
+| `crowdsec` environment option | description                                                                                                                                                              |
+|-------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `ENROLL_KEY`                  | The enroll key from the CrowdSec hub                                                                                                                                     |
+| `ENROLL_INSTANCE_NAME`        | The name to send to CrowdSec hub                                                                                                                                         |
+| `BOUNCING_ON_TYPE`            | Type of remediation we want to bounce. If you choose `ban` only and receive a decision with `captcha` as remediation, the bouncer will skip the decision.                |
+| `FALLBACK_REMEDIATION`        | The fallback remediation is applied if the bouncer receives a decision with an unknown remediation.                                                                      |
+| `MODE`                        | The bouncer mode                                                                                                                                                         |
+| `REQUEST_TIMEOUT`             | Timeout in milliseconds for the HTTP requests done by the bouncer to query CrowdSec local API or captcha provider (for the captcha verification).                        |
+| `CACHE_EXPIRATION`            | The cache expiration, in second, for IPs that the bouncer store in cache in `live` mode.                                                                                 |
+| `UPDATE_FREQUENCY`            | The frequency of update, in second, to pull new/old IPs from the CrowdSec local API.                                                                                     |
+| `RET_CODE`                    | The HTTP code to return for IPs that trigger a ban remediation. If nothing specified, it will return a `403`.                                                            |
+| `CAPTCHA_PROVIDER`            | The CAPTCHA provider. `recaptcha`, `hcaptcha`, or `turnstile`                                                                                                            |
+| `SECRET_KEY`                  | The captcha secret key.                                                                                                                                                  |
+| `SITE_KEY`                    | The captcha site key.                                                                                                                                                    |
+| `CAPTCHA_EXPIRATION`          | The time for which the captcha will be validated. After this duration, if the decision is still present in CrowdSec local API, the IPs address will get a captcha again. |
 
 
 ## Contributors
