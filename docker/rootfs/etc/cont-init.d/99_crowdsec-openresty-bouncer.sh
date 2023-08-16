@@ -1,9 +1,10 @@
-#!/usr/bin/with-contenv bash
+#!/command/with-contenv bash
+# shellcheck shell=bash
 
-#set -e # Exit immediately if a command exits with a non-zero status.
-#set -u # Treat unset variables as an error.
+set -u # Treat unset variables as an error.
 
-log "Enabling CrowdSec OpenResty Bouncer"
+echo 'Enabling CrowdSec OpenResty Bouncer'
 
-sed -i "s/<LAPI_URL>/$LAPI_URL/g" /etc/crowdsec/bouncers/crowdsec-openresty-bouncer.conf
+# Change the LAPI variables in the config
+sed -i "s/<LAPI_URL>/http:\/\/$LAPI_URL/g" /etc/crowdsec/bouncers/crowdsec-openresty-bouncer.conf
 sed -i "s/<API_KEY>/$LAPI_KEY/g" /etc/crowdsec/bouncers/crowdsec-openresty-bouncer.conf

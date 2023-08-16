@@ -3,17 +3,28 @@ name: Docker Image CI
 on:
   push:
     branches: [ "master" ]
+  workflows: [Build UI]
+  types:
+    - completed
 
 jobs:
-
   build:
-
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v3
-      - name: Build the frontend UI
-        run: sudo apt update && sudo apt install yarnpkg -y && sudo npm i -g yarn && cd frontend && yarn install && yarn build && yarn build
+
+      - name: Download UI
+        uses: actions/download-artifact@v3
+        with:
+          name: frontend-dist
+          path: frontend/dist
+
+      - name: DEBUG1
+        run: ls frontend
+
+      - name: DEBUG2
+        run: ls frontend/dist
 
       - name: Log in to Docker Hub
         uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a

@@ -38,6 +38,9 @@ RUN echo "fs.file-max = 65535" > /etc/sysctl.conf \
 	&& apt-get clean \
 	&& rm -rf /var/lib/apt/lists/*
 
+# Fix bad lua package location
+RUN sed -i 's/\$prefix\/\.\.\/lualib\/plugins\/crowdsec\//\/usr\/local\/openresty\/lualib\//g' /usr/local/openresty/nginx/conf/conf.d/crowdsec_openresty.conf
+
 # s6 overlay
 COPY docker/scripts/install-s6 /tmp/install-s6
 RUN /tmp/install-s6 "${TARGETPLATFORM}" && rm -f /tmp/install-s6

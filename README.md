@@ -13,6 +13,8 @@
 This project comes as a pre-built docker image that enables you to easily forward to your websites
 running at home or otherwise, including free SSL, without having to know too much about Nginx or Letsencrypt.
 
+The original project has been modified to use CrowdSec as a bouncer.
+
 - [Quick Setup](#quick-setup)
 - [Full Setup](https://nginxproxymanager.com/setup/)
 - [Screenshots](https://nginxproxymanager.com/screenshots/)
@@ -58,19 +60,67 @@ I won't go in to too much detail here but here are the basics for someone new to
 ```yml
 version: '3.8'
 services:
-  app:
-    image: 'jc21/nginx-proxy-manager:latest'
+  # The nginx reverse proxy
+  nginx:
+    image: 'deathcamel57/nginx-proxy-manager:latest'
     restart: unless-stopped
     ports:
-      - '80:80'
-      - '81:81'
-      - '443:443'
+      # These ports are in format <host-port>:<container-port>
+      - '80:80' # Public HTTP Port
+      - '443:443' # Public HTTPS Port
+      - '81:81' # Admin Web Port
+      # Add any other Stream port you want to expose
+      # - '21:21' # FTP
+
+    environment:
+
+      # OpenResty Config
+      LAPI_URL: "crowdsec:8080"
+      LAPI_KEY: "b02ed1cd-5bad-4b02-b8ea-725e28699112"
+
+      # General stuff
+      TZ: "America/New_York"
     volumes:
       - ./data:/data
       - ./letsencrypt:/etc/letsencrypt
+
+  # Crowdsec, for security
+  crowdsec:
+    image: crowdsecurity/crowdsec
+    restart: always
+    environment:
+      #this is the list of collections we want to install
+      #https://hub.crowdsec.net/author/crowdsecurity/collections/nginx
+      COLLECTIONS: "crowdsecurity/nginx"
+
+      # Crowdsec console registration
+      ENROLL_KEY: "===CROWDSEC_ENROLL_KEY==="
+      ENROLL_INSTANCE_NAME: "NPM_Docker"
+
+      # CrowdSec bouncer registration
+      BOUNCER_KEY_nginx: "b02ed1cd-5bad-4b02-b8ea-725e28699112"
+
+      # General stuff
+      TZ: "America/New_York"
+      GID: "${GID-1000}"
+    depends_on:
+      - 'nginx'
+    volumes:
+      - crowdsec_data:/var/lib/crowdsec/data/
+      - ./crowdsec-config:/etc/crowdsec/
+      # Mount the acquisition parsers folder
+      # Note: These files will have to be manually created!
+      - ./crowdsec/acquis.d:/etc/crowdsec/acquis.d/
+      # Mount log files needed
+      - ./data/logs:/var/log/nginx
+
+volumes:
+  crowdsec_data:
 ```
 
-This is the bare minimum configuration required. See the [documentation](https://nginxproxymanager.com/setup/) for more.
+This is a known working configuration, pulled from a live environment.
+See the [documentation](https://nginxproxymanager.com/setup/) for more nginx proxy manager settings.
+See the [documentation](https://hub.docker.com/r/crowdsecurity/crowdsec) for more CrowdSec settings.
 
 3. Bring up your stack by running
 
