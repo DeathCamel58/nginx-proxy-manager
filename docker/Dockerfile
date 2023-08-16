@@ -22,11 +22,24 @@ ENV SUPPRESS_NO_CONFIG_WARNING=1 \
 	NPM_BUILD_COMMIT="${BUILD_COMMIT}" \
 	NPM_BUILD_DATE="${BUILD_DATE}"
 
+# Add CrowdSec repository
+RUN curl -s https://packagecloud.io/install/repositories/crowdsec/crowdsec/script.deb.sh | bash
+
+# Add OpenResty repository
+COPY docker/scripts/add-openresty-repo /tmp/add-openresty-repo
+RUN /tmp/add-openresty-repo
+
+# Configure nginx to use openresty
+RUN sed -i 's/http {/http {\n\tinclude                       \/usr\/local\/openresty\/nginx\/conf\/conf\.d\/crowdsec_openresty\.conf;/g' /etc/nginx/nginx.conf
+
 RUN echo "fs.file-max = 65535" > /etc/sysctl.conf \
 	&& apt-get update \
-	&& apt-get install -y --no-install-recommends jq logrotate \
+	&& apt-get install -y --no-install-recommends jq logrotate openresty openresty-opm gettext-base crowdsec-openresty-bouncer \
 	&& apt-get clean \
 	&& rm -rf /var/lib/apt/lists/*
+
+# Fix bad lua package location
+RUN sed -i 's/\$prefix\/\.\.\/lualib\/plugins\/crowdsec\//\/usr\/local\/openresty\/lualib\//g' /usr/local/openresty/nginx/conf/conf.d/crowdsec_openresty.conf
 
 # s6 overlay
 COPY docker/scripts/install-s6 /tmp/install-s6
@@ -58,6 +71,6 @@ LABEL org.label-schema.schema-version="1.0" \
 	org.label-schema.license="MIT" \
 	org.label-schema.name="nginx-proxy-manager" \
 	org.label-schema.description="Docker container for managing Nginx proxy hosts with a simple, powerful interface " \
-	org.label-schema.url="https://github.com/jc21/nginx-proxy-manager" \
-	org.label-schema.vcs-url="https://github.com/jc21/nginx-proxy-manager.git" \
-	org.label-schema.cmd="docker run --rm -ti jc21/nginx-proxy-manager:latest"
+	org.label-schema.url="https://github.com/deathcamel58/nginx-proxy-manager" \
+	org.label-schema.vcs-url="https://github.com/deathcamel58/nginx-proxy-manager.git" \
+	org.label-schema.cmd="docker run --rm -ti deathcamel58/nginx-proxy-manager:latest"

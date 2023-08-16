@@ -1,0 +1,17 @@
+#!/bin/bash -e
+
+# Detect the current OS codename
+codename=`grep -Po 'VERSION="[0-9]+ \(\K[^)]+' /etc/os-release`
+
+# Add the OpenResty repository key
+curl https://openresty.org/package/pubkey.gpg | apt-key add -
+
+# Check the current architecture, and add the correct OpenResty repository
+MACHINE_TYPE=`uname -m`
+if [ ${MACHINE_TYPE} == 'i386' ] || [ ${MACHINE_TYPE} == 'x86_64' ]; then
+  # X86 Architecture
+  echo "deb http://openresty.org/package/debian $codename openresty" | tee /etc/apt/sources.list.d/openresty.list
+elif [ ${MACHINE_TYPE} == 'arm64' ] || [ ${MACHINE_TYPE} == 'aarch64' ]; then
+  # ARM Architecture
+  echo "deb http://openresty.org/package/arm64/debian $codename openresty" | tee /etc/apt/sources.list.d/openresty.list
+fi
