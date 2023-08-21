@@ -59,7 +59,7 @@ jobs:
 
       - if: contains( github.ref, 'v3')
         uses: actions/cache@v3
-        id: frontend-dist
+        id: backend-assets
         with:
           path: backend/embed/assets/*
           key: ${{ github.sha }}
