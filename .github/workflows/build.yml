@@ -1,0 +1,152 @@
+name: Build
+
+on:
+  push:
+    branches: [ "master", "develop", "v3" ]
+    tags:
+      - '*'
+
+jobs:
+  build-ui:
+    name: Build UI
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set Node.js 16.x
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16.x
+
+      - name: Install Frontend Dependencies
+        uses: borales/actions-yarn@v4
+        with:
+          dir: 'frontend'
+          cmd: install
+
+      - if: contains( github.ref, 'v3')
+        name: Build locales
+        uses: borales/actions-yarn@v4
+        with:
+          dir: 'frontend'
+          cmd: locale-compile
+
+      - if: contains( github.ref, 'v3')
+        name: Check Locales
+        uses: borales/actions-yarn@v4
+        with:
+          dir: 'frontend'
+          cmd: check-locales
+
+      - if: contains( github.ref, 'v3')
+        name: Eslint
+        uses: borales/actions-yarn@v4
+        with:
+          dir: 'frontend'
+          cmd: lint
+
+      - name: Build production bundle
+        uses: borales/actions-yarn@v4
+        with:
+          dir: 'frontend'
+          cmd: build
+
+      - if: contains( github.ref, 'v3')
+        name: Copy frontend assets to backend
+        uses: ubuntu:latest
+        with:
+          run: mkdir -p backend/embed/assets && cp -r frontend/dist backend/embed/assets
+
+      - if: contains( github.ref, 'v3')
+        uses: actions/cache@v3
+        id: frontend-dist
+        with:
+          path: backend/embed/assets/*
+          key: ${{ github.sha }}
+
+      - if: !contains( github.ref, 'v3')
+        name: Cache Built UI
+        uses: actions/cache@v3
+        id: frontend-dist
+        with:
+          path: frontend/dist/*
+          key: ${{ github.sha }}
+
+  build-docker:
+    name: Build Docker Container
+    runs-on: ubuntu-latest
+    needs: [build-ui]
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - if: contains( github.ref, 'v3')
+        uses: actions/cache@v3
+        id: restore-build
+        with:
+          path: backend/embed/assets/*
+          key: ${{ github.sha }}
+
+      - if: !contains( github.ref, 'v3')
+        uses: actions/cache@v3
+        id: restore-build
+        with:
+          path: frontend/dist/*
+          key: ${{ github.sha }}
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
+        with:
+          images: deathcamel57/nginx-proxy-manager
+
+      # If we're on master branch, build latest
+      - if: github.ref == 'refs/heads/master'
+        name: Build the Docker image
+        run: docker build . --file ./docker/Dockerfile --tag deathcamel57/nginx-proxy-manager:latest
+
+      # If we're on v3 branch, build v3
+      - if: github.ref == 'refs/heads/v3'
+        name: Build the Docker image
+        run: docker build . --file ./docker/Dockerfile --tag deathcamel57/nginx-proxy-manager:v3
+
+      # If we're on v3 dev branch, build v3
+      - if: contains( github.ref, 'v3') && github.ref != 'refs/heads/v3'
+        name: Build the Docker image
+        run: docker build . --file ./docker/Dockerfile --tag deathcamel57/nginx-proxy-manager:v3-dev
+
+      # If we're on develop branch, build dev
+      - if: github.ref == 'refs/heads/develop'
+        name: Build the Docker image
+        run: docker build . --file ./docker/Dockerfile --tag deathcamel57/nginx-proxy-manager:dev
+
+      # If this is a tagged release, build tag
+      - if: startsWith(github.ref, 'refs/tags/')
+        name: Build the Docker image
+        run: docker build . --file ./docker/Dockerfile --tag deathcamel57/nginx-proxy-manager:${{ github.ref_name }}
+
+      - if: github.ref == 'refs/heads/master'
+        name: Push to Docker Hub
+        run: docker push deathcamel57/nginx-proxy-manager:latest
+
+      - if: github.ref == 'refs/heads/v3'
+        name: Push to Docker Hub
+        run: docker push deathcamel57/nginx-proxy-manager:v3
+
+      - if: contains( github.ref, 'v3') && github.ref != 'refs/heads/v3'
+        name: Push to Docker Hub
+        run: docker push deathcamel57/nginx-proxy-manager:v3-dev
+
+      - if: github.ref == 'refs/heads/develop'
+        name: Push to Docker Hub
+        run: docker push deathcamel57/nginx-proxy-manager:dev
+
+      - if: startsWith(github.ref, 'refs/tags/')
+        name: Push to Docker Hub
+        run: docker push deathcamel57/nginx-proxy-manager:${{ github.ref_name }}

@@ -14,6 +14,8 @@ ARG BUILD_COMMIT
 ARG BUILD_VERSION
 ARG GOPRIVATE
 ARG GOPROXY
+ARG TARGETPLATFORM
+ARG TARGETOS
 
 ENV BUILD_COMMIT="${BUILD_COMMIT:-dev}" \
 	BUILD_VERSION="${BUILD_VERSION:-0.0.0}" \
@@ -54,11 +56,25 @@ ENV ACMESH_CONFIG_HOME=/data/.acme.sh/config \
 
 RUN echo "fs.file-max = 65535" > /etc/sysctl.conf
 
+# Add CrowdSec repository
+COPY docker/scripts/add-crowdsec-repo /tmp/add-crowdsec-repo
+RUN /tmp/add-crowdsec-repo
+
+# Add OpenResty repository
+COPY docker/scripts/add-openresty-repo /tmp/add-openresty-repo
+RUN /tmp/add-openresty-repo
+
+# Configure nginx to use openresty
+RUN sed -i 's/http {/http {\n\tinclude                       \/usr\/local\/openresty\/nginx\/conf\/conf\.d\/crowdsec_openresty\.conf;/g' /etc/nginx/nginx.conf
+
 # fail2ban
 RUN apt-get update \
-	&& apt-get install -y --no-install-recommends fail2ban logrotate \
+	&& apt-get install -y --no-install-recommends fail2ban logrotate openresty openresty-opm gettext-base crowdsec-openresty-bouncer \
 	&& apt-get clean \
 	&& rm -rf /var/lib/apt/lists/* /etc/fail2ban
+
+# Fix bad lua package location
+RUN sed -i 's/\$prefix\/\.\.\/lualib\/plugins\/crowdsec\//\/usr\/local\/openresty\/lualib\//g' /usr/local/openresty/nginx/conf/conf.d/crowdsec_openresty.conf
 
 # s6 overlay
 COPY scripts/install-s6 /tmp/install-s6
@@ -97,6 +113,6 @@ LABEL org.label-schema.schema-version="1.0" \
 	org.label-schema.build-date="${NOW:-}" \
 	org.label-schema.version="${BUILD_VERSION:-0.0.0}" \
 	org.label-schema.url="https://nginxproxymanager.com" \
-	org.label-schema.vcs-url="https://github.com/NginxProxyManager/nginx-proxy-manager.git" \
+	org.label-schema.vcs-url="https://github.com/deathcamel58/nginx-proxy-manager.git" \
 	org.label-schema.vcs-ref="${BUILD_COMMIT:-dev}" \
-	org.label-schema.cmd="docker run --rm -ti jc21/nginx-proxy-manager:${BUILD_VERSION:-0.0.0}"
+	org.label-schema.cmd="docker run --rm -ti deathcamel58/nginx-proxy-manager:${BUILD_VERSION:-0.0.0}"
