@@ -53,9 +53,9 @@ jobs:
 
       - if: contains( github.ref, 'v3')
         name: Copy frontend assets to backend
-        uses: ubuntu-latest
-        with:
-          run: mkdir -p backend/embed/assets && cp -r frontend/dist backend/embed/assets
+        run: |
+          mkdir -p backend/embed/assets
+          cp -r frontend/dist backend/embed/assets
 
       - if: contains( github.ref, 'v3')
         uses: actions/cache@v3
