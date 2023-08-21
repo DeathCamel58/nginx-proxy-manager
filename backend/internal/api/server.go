@@ -16,7 +16,7 @@ func StartServer() {
 	logger.Info("Server starting on port %v", httpPort)
 
 	server := &http.Server{
-		Addr:              fmt.Sprintf(":%v", httpPort),
+		Addr:              fmt.Sprintf("0.0.0.0:%v", httpPort),
 		Handler:           NewRouter(),
 		ReadHeaderTimeout: 3 * time.Second,
 	}
