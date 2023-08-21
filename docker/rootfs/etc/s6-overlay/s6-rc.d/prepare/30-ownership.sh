@@ -3,6 +3,8 @@
 
 set -e
 
+. /bin/common.sh
+
 log_info 'Setting ownership ...'
 
 # root

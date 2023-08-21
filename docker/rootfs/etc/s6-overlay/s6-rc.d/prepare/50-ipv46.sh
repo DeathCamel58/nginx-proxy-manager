@@ -6,6 +6,8 @@
 
 set -e
 
+. /bin/common.sh
+
 log_info 'IPv4/IPv6 ...'
 
 DIS_4=$(is_true "$NPM_DISABLE_IPV4")

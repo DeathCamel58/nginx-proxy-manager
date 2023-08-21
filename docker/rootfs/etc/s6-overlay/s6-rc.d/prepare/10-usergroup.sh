@@ -3,6 +3,8 @@
 
 set -e
 
+. /bin/common.sh
+
 log_info "Configuring $NPMUSER user ..."
 
 if id -u "$NPMUSER" 2>/dev/null; then

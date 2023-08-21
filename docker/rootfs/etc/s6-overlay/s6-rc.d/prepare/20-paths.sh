@@ -3,6 +3,8 @@
 
 set -e
 
+. /bin/common.sh
+
 log_info 'Checking paths ...'
 
 # Ensure /data is mounted

@@ -3,6 +3,8 @@
 
 set -e
 
+. /bin/common.sh
+
 log_info 'Fail2ban configuration ...'
 
 mkdir -p /fail2ban/{action.d,filter.d,jail.d,log}

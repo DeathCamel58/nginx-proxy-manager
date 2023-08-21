@@ -3,6 +3,8 @@
 
 set -e
 
+. /bin/common.sh
+
 log_info 'Dynamic resolvers ...'
 
 # Dynamically generate resolvers file, if resolver is IPv6, enclose in `[]`
