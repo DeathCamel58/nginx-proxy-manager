@@ -1,0 +1,11 @@
+#!/bin/bash -e
+
+# Update the apt caches
+apt-get update
+
+# Install the repo
+curl -s https://packagecloud.io/install/repositories/crowdsec/crowdsec/script.deb.sh | bash
+
+# Clean apt caches and such
+apt-get clean
+rm -rf /var/lib/apt/lists/*

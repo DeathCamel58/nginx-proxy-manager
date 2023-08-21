@@ -23,7 +23,8 @@ ENV SUPPRESS_NO_CONFIG_WARNING=1 \
 	NPM_BUILD_DATE="${BUILD_DATE}"
 
 # Add CrowdSec repository
-RUN curl -s https://packagecloud.io/install/repositories/crowdsec/crowdsec/script.deb.sh | bash
+COPY docker/scripts/add-crowdsec-repo /tmp/add-crowdsec-repo
+RUN /tmp/add-crowdsec-repo
 
 # Add OpenResty repository
 COPY docker/scripts/add-openresty-repo /tmp/add-openresty-repo
